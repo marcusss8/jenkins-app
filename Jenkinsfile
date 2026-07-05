@@ -22,7 +22,8 @@ pipeline {
         }
         stage('Test') {
             steps {
-                sh 'echo "Test Stage"'
+                sh 'echo "Test Stage"' 
+                sh 'test -f build/index.html' // Check for existance of a certain file
             }
             
         }
