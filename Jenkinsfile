@@ -21,11 +21,16 @@ pipeline {
             }
         }
         stage('Test') {
-            /* steps {
-                sh 'echo "Test Stage"' 
-                sh 'test -f build/index.html' // Check for existance of a certain file
-            } */
             steps {
+                sh '''
+                echo "Test Stage"
+                test -f build/index.html
+                '''
+            }
+
+           /*
+            // Alternative way to test for file existance.
+           steps {
                 script {
                     if(fileExists('build/index.html')){
                         echo "The file does exists"
@@ -33,7 +38,7 @@ pipeline {
                         echo "The file does Not exist"
                     }
                 }
-            }
+            } */
 
             
         }
