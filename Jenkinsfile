@@ -35,7 +35,18 @@ pipeline {
                 '''
             }
 
-           /*
+        }
+    }
+
+    // Publish the JUnit test report no matter if the pipeline fails or not
+    post {
+        always {
+            junit 'test-results/junit.xml'
+        }
+    }
+}
+
+/*
             // Alternative way to test for file existance.
            steps {
                 script {
@@ -46,8 +57,3 @@ pipeline {
                     }
                 }
             } */
-
-            
-        }
-    }
-}
