@@ -46,11 +46,13 @@ pipeline {
                 }
             }
 
-            // 1. Start application 2. Running test (-g = global, -s = )
+            // 1. Start application 2. Running test (-g = global, -s = , & = start in background(async?))
+            // Sleep to allow for server to start up before testing
             steps {
                 sh '''
                     npm install serve
-                    node_modules/.bin/serve -s build
+                    node_modules/.bin/serve -s build &
+                    sleep 10
                     npx playwright test
                 '''
             }
