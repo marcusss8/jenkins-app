@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     stages {
-        stage('Build') {
+       /*  stage('Build') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -19,7 +19,7 @@ pipeline {
                     ls -la
                 '''
             }
-        }
+        } */
         stage('Test') {
             agent {
                 docker {
@@ -36,9 +36,27 @@ pipeline {
             }
 
         }
+
+        stage('E2E') {
+            agent {
+                docker {
+                    image: 'mcr.microsoft.com/playwright:v1.61.0-noble'
+                    reuseNode true
+                }
+            }
+
+            // 1. Start application 2. Running test
+            steps {
+                sh '''
+                    npm install -g serve
+                    serve -s build
+                    npx playwright test
+                '''
+            }
+        }
     }
 
-    // Publish the JUnit test report no matter if the pipeline fails or not
+    // Publish the JUnit test report to Jenkins server, no matter pipline fail or pass.
     post {
         always {
             junit 'test-results/junit.xml'
