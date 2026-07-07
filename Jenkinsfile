@@ -65,7 +65,7 @@ pipeline {
     // Publish the JUnit test report to Jenkins server, no matter pipline fail or pass.
     post {
         always {
-            junit 'test-results/junit.xml'
+            junit 'jest-results/junit.xml'
         }
     }
 }
