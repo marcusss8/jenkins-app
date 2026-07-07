@@ -63,9 +63,11 @@ pipeline {
     }
 
     // Publish the JUnit test report to Jenkins server, no matter pipline fail or pass.
+    // Publish html report for playwrigth
     post {
         always {
             junit 'jest-results/junit.xml'
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
 }
