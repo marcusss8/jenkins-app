@@ -20,7 +20,12 @@ pipeline {
                 '''
             }
         } */
-        stage('Test') {
+
+        // For parallel stages
+        stage('Run Tests') {
+            parallel {
+
+                stage('Test') {
             agent {
                 docker {
                     image 'node:18-alpine'
@@ -34,9 +39,8 @@ pipeline {
                 npm test
                 '''
             }
-
         }
-
+        
         stage('E2E') {
             agent {
                 docker {
@@ -46,7 +50,7 @@ pipeline {
                 }
             }
 
-            // 1. Start application 2. Running test (-g = global, -s = , & = start in background(async?))
+            // 1. Start application 2. Running test (-g = global, -s = single (single page application) , & = start in background(async?))
             // Sleep to allow for server to start up before testing
             steps {
                 sh '''
@@ -60,6 +64,11 @@ pipeline {
                 '''
             }
         }
+
+            }
+        }
+
+        
     }
 
     // Publish the JUnit test report to Jenkins server, no matter pipline fail or pass.
