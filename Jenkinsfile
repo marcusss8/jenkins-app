@@ -1,6 +1,7 @@
 pipeline {
     agent any
 
+    // All variables 
     // Secret token for "netlify login details" stored safe in jenkins credentials as a secret
     environment {
         NETLIFY_SITE_ID = '97bb2c8f-b1c8-43b1-a904-ca0bc42cdea0'
@@ -83,7 +84,7 @@ pipeline {
     // Publish html report for playwrigth
     post {
         always {
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright HTML Report', reportTitles: '', useWrapperFileDirectly: true])
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
         }
     }
         }
@@ -110,6 +111,36 @@ pipeline {
             '''
         }
     }
+
+     stage('Prod E2E') {
+            agent {
+                docker {
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    reuseNode true
+                    args ''
+                }
+            }
+
+            // Variables just for this stage, needed for testing production via playwrigth
+            environment {
+                CI_ENVIRONMENT_URL = 'https://storied-cat-a78302.netlify.app'
+            }
+
+            steps {
+                sh '''
+                    npx playwright test --reporter=line
+                '''
+            }
+
+    
+    // Publish html report for playwrigth
+    post {
+        always {
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright E2E', reportTitles: '', useWrapperFileDirectly: true])
+        }
+    }
+        }
+
     }
 
 
