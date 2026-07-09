@@ -92,8 +92,29 @@ pipeline {
             }
         }
 
+        // Deploying to non-public "server" in order to test finished page before actuall deploy
+        // By removing "---prod" from netlify deploy
+        stage('Deploy staging'){
+        agent{
+             docker {
+                    image 'node:18-alpine'
+                    reuseNode true
+                }
+        }
+
+        steps {
+            sh '''
+                npm install netlify-cli@20.1.1
+                node_modules/.bin/netlify --version
+                echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
+                node_modules/.bin/netlify status
+                node_modules/.bin/netlify deploy --dir=build
+            '''
+        }
+    }
+
         
-    stage('Deploy'){
+    stage('Deploy prod'){
         agent{
              docker {
                     image 'node:18-alpine'
