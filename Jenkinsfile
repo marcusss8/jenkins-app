@@ -20,7 +20,6 @@ pipeline {
             }
             steps {
                 sh '''
-                    echo 'Small test change'
                     ls -la
                     node --version
                     npm --version
@@ -64,7 +63,6 @@ pipeline {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
-                    args ''
                 }
             }
 
@@ -72,9 +70,6 @@ pipeline {
             // Sleep to allow for server to start up before testing
             steps {
                 sh '''
-                    whoami          # prints the username you're running as
-                    id              # prints UID, GID, and group memberships
-                    ls -la          # shows the owner column for every file in the current folder
                     npm install serve
                     node_modules/.bin/serve -s build &
                     sleep 10
