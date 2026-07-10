@@ -1,11 +1,13 @@
 pipeline {
     agent any
 
-    // All variables 
+    // All variables are available at the different stages. Some names need to be specific 
     // Secret token for "netlify login details" stored safe in jenkins credentials as a secret
     environment {
         NETLIFY_SITE_ID = '97bb2c8f-b1c8-43b1-a904-ca0bc42cdea0'
         NETLIFY_AUTH_TOKEN = credentials('netlify-token')
+        // using the buildID for versioning. 
+        REACT_APP_VERSION = "1.0.$BUILD_ID"
     }
 
     stages {
@@ -30,7 +32,7 @@ pipeline {
         }
 
         // For parallel stages
-        stage('Run Tests') {
+        stage('Tests') {
             parallel {
 
                 stage('Unit Tests') {
@@ -126,18 +128,6 @@ pipeline {
         }
     }
         }
-
-
-    
-     stage('Approval'){
-            steps {
-                timeout(time: 15, unit: 'MINUTES') {
-                    input message: 'Ready to deploy?', ok: 'Yes, I am sure I want to deploy'
-                }
-                    
-            }
-        }
-
 
      stage('Deploy prod & E2E') {
             agent {
