@@ -34,29 +34,29 @@ pipeline {
         stage('Tests') {
             parallel {
 
-                stage('Unit Tests') {
-            agent {
-                docker {
-                    image 'node:18-alpine'
-                    reuseNode true
+            stage('Unit Tests') {
+                agent {
+                    docker {
+                        image 'node:18-alpine'
+                        reuseNode true
+                    }
+                }
+                steps {
+                    sh '''
+                    echo "Test Stage"
+                    test -f build/index.html
+                    npm test
+                    '''
+                }
+
+            // Publish the JUnit test report to Jenkins server, no matter pipline fail or pass.
+    
+                post {
+                    always {
+                        junit 'jest-results/junit.xml'
+                    }
                 }
             }
-            steps {
-                sh '''
-                echo "Test Stage"
-                test -f build/index.html
-                npm test
-                '''
-            }
-
-         // Publish the JUnit test report to Jenkins server, no matter pipline fail or pass.
-   
-    post {
-        always {
-            junit 'jest-results/junit.xml'
-        }
-    }
-        }
 
         stage('E2E') {
             agent {
@@ -74,27 +74,28 @@ pipeline {
                     node_modules/.bin/serve -s build &
                     sleep 10
                     npx playwright test --reporter=line
+                    ls -la playwright-report/ || echo "DIRECTORY MISSING"
                 '''
+                
             }
 
     
-    // Publish html report for playwrigth
-    post {
-        always {
-            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
-        }
-    }
+            // Publish html report for playwrigth
+            post {
+                always {
+                    publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, icon: '', keepAll: false, reportDir: 'playwright-report', reportFiles: 'index.html', reportName: 'Playwright Local', reportTitles: '', useWrapperFileDirectly: true])
+                }
+            }
         }
 
             }
-        }
+    }
 
      stage('Deploy Staging & E2E') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
-                    args ''
                 }
             }
 
