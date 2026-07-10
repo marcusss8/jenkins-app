@@ -92,32 +92,7 @@ pipeline {
             }
         }
 
-        // Deploying to non-public "server" in order to test finished page before actuall deploy
-        // By removing "---prod" from netlify deploy
-        stage('Deploy staging'){
-        agent{
-             docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-        }
-
-        // Node-jq to parse temporary url for staged site in order to run tests. (its random each time)
-        steps {
-            sh '''
-                npm install netlify-cli@20.1.1 node-jq
-                node_modules/.bin/netlify --version
-                echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
-                node_modules/.bin/netlify deploy --dir=build --json > deploy-output-json
-            '''
-            // Dynamically creating variable to be used in later step. Ie Stagin url to be used for E2E
-            script {
-                env.STAGING_URL = sh(script: "node_modules/.bin/node-jq -r '.deploy_url' deploy-output-json", returnStdout:true)
-            }
-        }
-    }
-
-     stage('Staging E2E') {
+     stage('Deploy Staging & E2E') {
             agent {
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
@@ -126,13 +101,19 @@ pipeline {
                 }
             }
 
-            // Variables just for this stage, needed for testing production via playwrigth
+            // need to "instantiate" variable before setting it in steps later.
             environment {
-                CI_ENVIRONMENT_URL = "${env.STAGING_URL}"
+                CI_ENVIRONMENT_URL = 'STAGING_URL_TO_BE_SET'
             }
 
+            // CI_ENV only accessable from script when declared like this.
             steps {
                 sh '''
+                    npm install netlify-cli@20.1.1 node-jq
+                    node_modules/.bin/netlify --version
+                    echo "Deploying to staging. Site ID: $NETLIFY_SITE_ID"
+                    node_modules/.bin/netlify deploy --dir=build --json > deploy-output-json
+                    CI_ENVIRONMENT_URL=$(node_modules/.bin/node-jq -r '.deploy_url' deploy-output-json)
                     npx playwright test --reporter=line
                 '''
             }
@@ -158,32 +139,12 @@ pipeline {
         }
 
 
-        
-    stage('Deploy prod'){
-        agent{
-             docker {
-                    image 'node:18-alpine'
-                    reuseNode true
-                }
-        }
-
-        steps {
-            sh '''
-                npm install netlify-cli@20.1.1
-                node_modules/.bin/netlify --version
-                echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
-                node_modules/.bin/netlify status
-                node_modules/.bin/netlify deploy --dir=build --prod
-            '''
-        }
-    }
-
-     stage('Prod E2E') {
+     stage('Deploy prod & E2E') {
             agent {
+                // playwrigth image contains node
                 docker {
                     image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
                     reuseNode true
-                    args ''
                 }
             }
 
@@ -192,8 +153,15 @@ pipeline {
                 CI_ENVIRONMENT_URL = 'https://storied-cat-a78302.netlify.app'
             }
 
+            // Nelify deploy migth need time before deploy.
             steps {
                 sh '''
+                    node --version
+                    npm install netlify-cli@20.1.1
+                    node_modules/.bin/netlify --version
+                    echo "Deploying to production. Site ID: $NETLIFY_SITE_ID"
+                    node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build --prod
                     npx playwright test --reporter=line
                 '''
             }
