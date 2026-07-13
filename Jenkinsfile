@@ -12,16 +12,6 @@ pipeline {
 
     stages {
 
-
-        stage('Docker') {
-
-            // Read dockerfile and execute its instruction to produce an image.
-            steps {
-                sh 'docker build -t my-playwright .'
-            }
-        }
-
-
         stage('Build') {
             agent {
                 docker {

@@ -1,0 +1,16 @@
+pipeline {
+    agent any
+
+
+    stages {
+
+
+        stage('Build Docker image') {
+
+            // Read dockerfile and execute its instruction to produce an image.
+            steps {
+                sh 'docker build -t my-playwright .'
+            }
+        }
+    }
+}
