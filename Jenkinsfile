@@ -72,7 +72,7 @@ pipeline {
         stage('E2E') {
             agent {
                 docker {
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                    image 'my-playwright'
                     reuseNode true
                 }
             }
@@ -81,8 +81,7 @@ pipeline {
             // Sleep to allow for server to start up before testing
             steps {
                 sh '''
-                    npm install serve
-                    node_modules/.bin/serve -s build &
+                    serve -s build &
                     sleep 10
                     npx playwright test --reporter=line
                     ls -la playwright-report/ || echo "DIRECTORY MISSING"
